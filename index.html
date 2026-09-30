@@ -1428,9 +1428,8 @@ async function trySync(loud) {
   if (!navigator.onLine) { if (loud) toast('Offline — will sync when you’re back online'); return; }
   SYNCING = true;
   try {
-    const res = await fetch(p.syncUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key: p.syncKey, rows }) });
-    const j = await res.json();
-    if (!j.ok) throw new Error(j.error || 'Sheet refused the data');
+    const res = await fetch(p.syncUrl, { method: 'POST', redirect: 'manual', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key: p.syncKey, rows }) });
+    if (res.type !== 'opaqueredirect') { const j = await res.json(); if (!j.ok) throw new Error(j.error || 'Sheet refused the data'); }
     rows.forEach(r => { if (p.pending[r.id] === r) delete p.pending[r.id]; });
     p.lastSync = Date.now(); save(); if (loud) toast(`Synced ${rows.length} item${rows.length > 1 ? 's' : ''} to Google Sheet`);
   } catch (e) { if (loud) toast('Sync failed: ' + (e.message && e.message.length < 60 ? e.message : 'check the URL and key')); }
